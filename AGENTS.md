@@ -24,8 +24,14 @@
 
 - **Manage — единственный инфра-мутатор.** Только `manage` дёргает
   гипервизор/фабрику (provisioning, reset, изоляция). `cybercity-engine`
-  только *слышит* об изменениях как о смене сим-состояния и не мутирует
-  инфру.
+  — регистратор целей (не симулятор): только *слышит* об изменениях как о смене
+  реестра целей и не мутирует инфру.
+- **Runtime-aware provisioning.** `manage` владеет service-mapping manifest:
+  `service_id → {runtime_kind, template, honeypot?}`. `runtime_kind ∈ {vm,
+  container, lite}` (по умолчанию `lite`); `lite` — stub-образ `cc-lite`, заменяет
+  «simulated». Назначение-наживка `honeypot` — топологическое свойство в
+  `cybercity-data`, ортогональное `runtime_kind` (см. umbrella ADR-0004,
+  manage ADR-0002).
 - **Контрольная плоскость поверх реального IaC.** Оркестрируем Proxmox API
   (`proxmoxer`) + Terraform/Pulumi как библиотеку, не переписываем
   provisioning заново (см.

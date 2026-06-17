@@ -7,7 +7,7 @@
 
 `cybercity-manage` — единственный инфра-мутатор. Он не производит события
 для scoring сам; он меняет инфру, и `cybercity-engine` слышит об этом как
-о смене сим-состояния. Поток scoring живёт на доверенной плоскости
+о смене реестра целей (движок — регистратор, не симулятор). Поток scoring живёт на доверенной плоскости
 (`manage` + `collector` + Kafka), см.
 [`cybercity/adr/0002-trust-boundary.md`](https://github.com/TheCipherKeeper/cybercity/blob/main/adr/0002-trust-boundary.md).
 
@@ -19,6 +19,7 @@
 
 2. manage → гипервизор/фабрика (Proxmox API, Terraform/Pulumi)
       создание/удаление гостей, snapshot/clone, VLAN/firewall, gVisor/Kata
+      выбор template по runtime_kind (vm=golden image, container=образ, lite=cc-lite stub)
 
 3. manage → cybercity-collector (control-канал, mgmt-сегмент)
       «наблюдать X», «снапшот сейчас», «обновить политику сбора»
@@ -26,7 +27,7 @@
 
 4. manage → cybercity-engine (уведомление о смене инфры)
       «узел bank-web reset к t0», «сегмент ot изолирован»
-      engine слышит это как смену сим-состояния, не мутирует инфру сам
+      engine слышит это как смену реестра целей, не мутирует инфру сам (движок — регистратор)
 
 5. cybercity-collector → Kafka (mgmt) → cybercity-engine
       подписанные (Ed25519) события наблюдения; на них считается scoring

@@ -82,4 +82,5 @@ runtime, который постоянно оркеструет гипервиз
 
 - [`cybercity/COMPOSITION.md`](https://github.com/TheCipherKeeper/cybercity/blob/main/COMPOSITION.md) — «История переименований», «Кто чем владеет».
 - [`cybercity/adr/0002-trust-boundary.md`](https://github.com/TheCipherKeeper/cybercity/blob/main/adr/0002-trust-boundary.md) — доверительная граница; `manage` в trusted-плоскости.
+- [`cybercity/adr/0004-runtime-kind-vm-container-lite.md`](https://github.com/TheCipherKeeper/cybercity/blob/main/adr/0004-runtime-kind-vm-container-lite.md) — `runtime_kind {vm, container, lite}` deployment-time; manage владеет service-mapping manifest; движок = регистратор.
 - [`../ARCHITECTURE.md`](../ARCHITECTURE.md) — целевая архитектура manage.

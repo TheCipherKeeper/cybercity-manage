@@ -29,8 +29,12 @@ cybercity-manage --proxmox-host ... provision --plan plans/lab.yaml
 - **Язык:** Python ≥ 3.12.
 - **Гипервизор:** Proxmox API через `proxmoxer` (REST).
 - **IaC как библиотека:** `python-terraform` / CDKTF (Pulumi).
-- **Reset:** ZFS snapshot/clone (через Proxmox API).
+- **Reset:** ZFS snapshot/clone (через Proxmox API) — для `vm`; `container`/`lite`
+  — пересоздание pod'а (stateless, секунды).
 - **Изоляция:** gVisor / Kata-containers для контейнерных целей.
+- **Runtime-aware provisioning:** `runtime_kind ∈ {vm, container, lite}` из
+  service-mapping manifest (ADR-0002) выбирает шаблон. `lite` — stub-образ `cc-lite`
+  (реальный сокет + подделанный баннер), заменяет «simulated»; по умолчанию `lite`.
 
 ## Инструментарий (целевой, по образцу `cybercity-data`)
 
