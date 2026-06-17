@@ -5,52 +5,26 @@
 [![Docs: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-lightgrey)](LICENSE-DOCS)
 
 Контрольная плоскость кибер-полигона CyberCity. Оркеструет инфраструктуру
-цели: provisioning узлов, **reset/rollback** к чистому состоянию, изоляцию
-сегментов, квоты и мульти-тенантность. Размещает и настраивает доверенный
-out-of-band коллектор (`cybercity-collector`) на каждом хосте.
+цели поверх реального IaC — Proxmox API (`proxmoxer`) + Terraform/Pulumi:
+provisioning узлов, **reset/rollback** к чистому состоянию через ZFS/CoW
+snapshot, сетевую изоляцию сегментов, квоты и мульти-тенантность, а также
+размещение и настройку доверенного out-of-band коллектора
+(`cybercity-collector`) на каждом хосте. `cybercity-engine` не мутирует
+инфру напрямую — он слышит об изменениях как о смене сим-состояния.
 
-Пишется на **Python** и лежит **поверх реального IaC** — Proxmox API +
-Terraform/Pulumi, — а не переписывает provisioning заново. Reset = откат
-снапшота (ZFS/CoW) за секунды, не пересборка.
+**Статус: стартовая точка — кода пока нет.** Репозиторий переименован из
+`cybercity-blueprints` (IaC-шаблоны) и переосмыслен в контрольную
+плоскость; реализация на Python поверх Proxmox/Terraform — в работе.
+Документация описывает целевую архитектуру.
 
-> Бывший `cybercity-blueprints` (IaC-шаблоны Ansible/Terraform). Переименован
-> и переосмыслен в контрольную плоскость. Канон композиции —
-> [`cybercity/COMPOSITION.md`](https://github.com/TheCipherKeeper/cybercity/blob/main/COMPOSITION.md).
-
-## Зоны ответственности
-
-- **Provisioning / reset / изоляция на уровне инфры** — здесь (гипервизор/фабрика).
-  `cybercity-engine` только *слышит* об этом как о смене сим-состояния.
-- **Размещение коллектора** — деплой `cybercity-collector` на каждый хост +
-  политика сбора; передаёт ему control-канал.
-- **Квоты / TTL / мульти-тенантность** — per-team бюджеты CPU/RAM/disk,
-  автоуничтожение инстансов после TTL.
-- **Сетевая изоляция** — VLAN/firewall сегментов (mgmt / corp / ot / public /
-  red-team), отсутствие маршрута из range в mgmt.
-
-## Стек (целевой)
-
-- Python-оркестратор + Proxmox API (`proxmoxer` / REST) + Terraform/Pulumi
-  как библиотека (`python-terraform` / CDKTF).
-- ZFS snapshot/clone для мгновенного reset; золотые образы + linked clones.
-- gVisor / Kata-containers для изоляции контейнерных целей в adversarial-режиме.
-
-## Статус
-
-**Стартовая точка.** Репозиторий переименован из `cybercity-blueprints`;
-контрольная плоскость на Python + привязка к Proxmox/Terraform — в работе.
-
-## Сегменты
-
-| Сегмент | VLAN | Назначение |
-|---|---|---|
-| `mgmt` | 10 | control plane, коллектор, Kafka, SIEM, бэкапы |
-| `corp` | 20 | рабочие станции, серверы организаций |
-| `ot` | 30 | SCADA, контроллеры, эмуляторы АСУ ТП |
-| `public` | 40 | DMZ, публичные порталы (Ingress) |
-| `red-team` | 50 | изолированная сеть атакующего |
-
-Изоляция: VLAN + firewall на Proxmox; в K8s — NetworkPolicy + Cilium.
+- Канон состава, контрактов и доверительной границы — в хабе:
+  [`cybercity/COMPOSITION.md`](https://github.com/TheCipherKeeper/cybercity/blob/main/COMPOSITION.md).
+- Правила работы в репозитории: [`AGENTS.md`](AGENTS.md).
+- Документация: [`docs/`](docs/) —
+  [`ARCHITECTURE.md`](docs/ARCHITECTURE.md),
+  [`DEVELOPMENT.md`](docs/DEVELOPMENT.md),
+  [`DATA_FLOW.md`](docs/DATA_FLOW.md),
+  [`adr/`](docs/adr/).
 
 ## Лицензия
 
