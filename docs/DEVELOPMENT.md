@@ -10,78 +10,92 @@
 ```bash
 cd /path/to/cybercity-manage
 
-# Установка окружения (целевое)
-uv sync            # или pip install -e .[dev]
+# Сборка
+go build ./...
 
-# Запуск тестов
-pytest
+# Тесты (с race-детектором и покрытием)
+go test -race -coverprofile=coverage.out ./...
 
-# Линт и типы
-ruff check .
-mypy .
+# Линт и статика
+go vet ./...
+golangci-lint run
 
 # Запуск оркестратора (требует реального Proxmox)
-cybercity-manage --proxmox-host ... provision --plan plans/lab.yaml
+go run ./cmd/cybercity-manage --proxmox-host ... provision --plan plans/lab.yaml
 ```
 
 ## Целевой стек
 
-- **Язык:** Python ≥ 3.12.
-- **Гипервизор:** Proxmox API через `proxmoxer` (REST).
-- **IaC как библиотека:** `python-terraform` / CDKTF (Pulumi).
+- **Язык:** Go ≥ 1.23 (модуль `github.com/TheCipherKeeper/cybercity-manage`;
+  см.
+  [ADR-0009](https://github.com/TheCipherKeeper/cybercity/blob/main/adr/0009-manage-implementation-language-go.md)).
+- **Гипервизор:** Proxmox API через `bpg/proxmox-go-sdk` (REST).
+- **IaC как библиотека:** `hashicorp/terraform-exec` / **Pulumi Go SDK**
+  (CDKTF-on-Go — опционально).
 - **Reset:** ZFS snapshot/clone (через Proxmox API) — для `vm`; `container`/`lite`
   — пересоздание pod'а (stateless, секунды).
 - **Изоляция:** gVisor / Kata-containers для контейнерных целей.
+- **Конкурентность:** горутины + `context.Context` (сквозные отмены/таймауты)
+  для параллельного provisioning/reset по множеству хостов.
 - **Runtime-aware provisioning:** `runtime_kind ∈ {vm, container, lite}` из
-  service-mapping manifest (ADR-0002) выбирает шаблон. `lite` — stub-образ `cc-lite`
+  service-mapping manifest
+  ([ADR-0004](https://github.com/TheCipherKeeper/cybercity/blob/main/adr/0004-runtime-kind-vm-container-lite.md))
+  выбирает шаблон. `lite` — stub-образ `cc-lite`
   (реальный сокет + подделанный баннер), заменяет «simulated»; по умолчанию `lite`.
 
-## Инструментарий (целевой, по образцу `cybercity-data`)
+## Инструментарий (целевой)
 
-> Зрелый Python-репозиторий `cybercity-data` задаёт конвенцию
-> инструментария; manage планирует её перенять. Пока всё — TODO.
+> manage реализуется на Go
+> ([ADR-0009](https://github.com/TheCipherKeeper/cybercity/blob/main/adr/0009-manage-implementation-language-go.md));
+> ранее планировавшийся Python-инструментарий
+> (по образцу `cybercity-data`: ruff/mypy/pytest/hypothesis) более не применяется.
+> Концепция двойного CI (отдельные пайплайны на lint и test) сохраняется. Пока
+> всё — TODO.
 
-- **ruff** — линтер/форматтер (`E,F,I,B,UP`, line-length 100, py312).
-- **mypy --strict** — статическая типизация (`warn_unused_ignores`,
-  `show_error_codes`).
-- **pytest + pytest-cov** — тесты с покрытием; целевой порог
-  `--cov-fail-under=95` (как в `cybercity-data`).
-- **hypothesis** — property-based тесты.
-- **pre-commit** — git hooks (ruff, mypy).
+- **golangci-lint** — линтер (набор: `govet`, `staticcheck`, `errcheck`, `revive`,
+  `gocritic`, `unused`, `lll` line-length 100).
+- **go vet / staticcheck** — статический анализ.
+- **go test** — тесты; `-race` (детектор гонок), `-coverprofile` (покрытие);
+  целевой порог покрытия — по образцу `cybercity-data` 95% (aspiration, per-package).
+- **`pgregory.net/rapid`** — property-based тесты (вместо `hypothesis`).
+- **table-driven tests** (stdlib `testing`) / `testify` (опционально) — assertions.
+- **goimports / gofumpt** — форматирование.
 - **Двойной CI** (как в data) — отдельные пайплайны на lint и test.
-
-Эталон конфигурации —
-[`cybercity-data/pyproject.toml`](https://github.com/TheCipherKeeper/cybercity-data/blob/main/pyproject.toml).
 
 ## Тестирование
 
-> TODO: кода пока нет, тестировать нечего. Цель — по образцу `cybercity-data`.
+> TODO: кода пока нет, тестировать нечего. Цель — по образцу `cybercity-data`,
+> адаптированному под Go.
 
 ```bash
 # Все тесты
-pytest
+go test ./...
 
-# С покрытием
-pytest --cov=cybercity_manage --cov-fail-under=95
+# С race-детектором и покрытием
+go test -race -coverprofile=coverage.out ./...
+go tool cover -func=coverage.out
 
-# Конкретный модуль
-pytest tests/test_provision.py -v
+# Конкретный пакет
+go test ./internal/domain -v
+
+# Интеграционные тесты (требуют реального Proxmox)
+go test -tags=integration ./internal/adapters/...
 ```
 
 Планируемый подход:
 
-- **Unit-тесты** на domain-логику (desired-state, quota, policy) — чистые,
-  без гипервизора.
-- **Property-based** через `hypothesis` — на аллокацию квот и policy.
-- **Adapter-тесты** на fakes/mocks портов; реальный Proxmox — в
-  интеграционных тестах, помеченных и запускаемых опционально (нужен
-  гипервизор).
+- **Unit-тесты** на domain-логику (desired-state, quota, policy) — table-driven,
+  чистые, без гипервизора.
+- **Property-based** через `pgregory.net/rapid` — на аллокацию квот и policy.
+- **Adapter-тесты** на fakes портов (Go-интерфейсы в `internal/ports`); реальный
+  Proxmox — в интеграционных тестах за build-tag `integration`, запускаемых
+  опционально (нужен гипервизор).
 
 ## Линтинг и проверки (целевые)
 
 ```bash
-ruff check .
-mypy .
+go vet ./...
+golangci-lint run
 ```
 
 ## Стиль коммитов
@@ -93,9 +107,12 @@ Conventional Commits (см.
 
 ## Процесс ADR
 
-Если изменение затрагивает архитектурное решение:
+ADR живут только в хабе `cybercity/adr/` (см.
+[ADR-0005](https://github.com/TheCipherKeeper/cybercity/blob/main/adr/0005-adr-centralized-in-hub.md));
+в этом репозитории `docs/adr/` не ведётся. Если изменение затрагивает
+архитектурное решение:
 
-1. Написать или обновить ADR в `docs/adr/`.
+1. Написать или обновить ADR в хабе `cybercity/adr/`.
 2. Сослаться на него из `docs/ARCHITECTURE.md`.
 3. Старые ADR помечать `superseded`, а не удалять.
 
@@ -103,4 +120,5 @@ Conventional Commits (см.
 
 - [`AGENTS.md`](../AGENTS.md) — правила для AI-агентов.
 - [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) — целевая архитектура.
-- [`cybercity-data/pyproject.toml`](https://github.com/TheCipherKeeper/cybercity-data/blob/main/pyproject.toml) — эталон Python-инструментария.
+- [`cybercity/adr/`](https://github.com/TheCipherKeeper/cybercity/blob/main/adr/) — все ADR (включая [ADR-0009](https://github.com/TheCipherKeeper/cybercity/blob/main/adr/0009-manage-implementation-language-go.md) — Go как язык реализации manage).
+- [`cybercity-data/pyproject.toml`](https://github.com/TheCipherKeeper/cybercity-data/blob/main/pyproject.toml) — эталон Python-инструментария (более не применяется в manage; сохранён как референс двойного CI).

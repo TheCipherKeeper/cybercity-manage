@@ -1,0 +1,29 @@
+# Локальная разработка: брокер (Redpanda) + этот сервис (manage). Процедура —
+# https://github.com/TheCipherKeeper/ai-project-template/docs/guide/50-deploy.md,
+# структура compose — …/docs/refs/DEPLOYMENT.md.
+# Системный compose (все сервисы программы) — в хабе, не здесь.
+
+services:
+  broker:
+    image: redpandadata/redpanda:latest
+    command: redpanda start --overprovisioned --smp 1 --memory 1G
+    ports:
+      - "9092:9092"     # клиентский порт брокера
+    volumes:
+      - broker-data:/var/lib/redpanda/data
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  manage:
+    build: { context: . }   # Dockerfile в корне репо
+    depends_on: [broker]
+    env_file: .env
+    ports:
+      - "8081:8081"   # control API (control-plane edge manage→engine)
+    # реальный Proxmox/IaC — через env (PROXMOX_API_URL/PROXMOX_TOKEN); без секретов в репо
+
+volumes:
+  broker-data:
