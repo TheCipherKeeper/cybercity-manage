@@ -18,7 +18,7 @@
 
 | Стек | Проверка | Тест | Сборка |
 |---|---|---|---|
-| Go | `gofmt -l . && go vet ./...` | `go test ./...` | `go build -o bin/cybercity-manage ./cmd/cybercity_manage` |
+| Go | `python tools/check_gofmt.py && go vet ./...` | `go test ./...` | `go build -o bin/cybercity-manage ./cmd/cybercity_manage` |
 
 ## Коммиты и язык
 

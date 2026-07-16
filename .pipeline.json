@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "lint": [["gofmt", "-l", "."], ["go", "vet", "./..."]],
+  "lint": [["python", "tools/check_gofmt.py"], ["go", "vet", "./..."]],
   "tests": [["go", "test", "./..."]],
   "build": {
     "commands": [["go", "build", "-o", "bin/cybercity-manage", "./cmd/cybercity_manage"]],

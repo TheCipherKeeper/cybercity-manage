@@ -28,7 +28,7 @@ func (server *Server) Start() {
 		writer.WriteHeader(http.StatusNotImplemented)
 		_, _ = writer.Write([]byte("manage stub — not implemented\n"))
 	})
-	log.Printf("manage stub — not implemented; listening on %s", server.addr)
+	log.Printf("manage stub — not implemented; listening on %s (control API placeholder)", server.addr)
 	if err := http.ListenAndServe(server.addr, mux); err != nil {
 		log.Fatalf("manage stub: HTTP server error: %v", err)
 	}
