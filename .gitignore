@@ -16,3 +16,6 @@ Thumbs.db
 
 # Claude Code (per-агентное, не коммитится)
 .claude/
+verification.json
+.pipeline/
+.deploy/

@@ -10,7 +10,7 @@ COPY go.mod ./
 COPY go.sum* ./
 RUN go mod download || true
 COPY . .
-RUN CGO_ENABLED=0 go build -o /out/cybercity-manage ./cmd/cybercity-manage
+RUN CGO_ENABLED=0 go build -o /out/cybercity-manage ./cmd/cybercity_manage
 
 # ---- stage: runtime ----
 FROM gcr.io/distroless/static-debian12:nonroot

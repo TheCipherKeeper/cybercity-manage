@@ -2,9 +2,9 @@
 
 > Спека модуля generic consumption `overlays`-артефакта (`internal/adapters`
 > часть + output port `OverlayConsumer`). Канон структуры —
-> [TheCipherKeeper/ai-project-template](https://github.com/TheCipherKeeper/ai-project-template)/docs/refs/SPEC.md;
-> **внутренняя архитектура — `…/docs/refs/MODULE.md`**; процедура —
-> `…/docs/guide/20-define-module.md`.
+> [TheCipherKeeper/addm](https://github.com/TheCipherKeeper/addm)/docs/ARCHITECTURE.md;
+> **внутренняя архитектура — `…/docs/ARCHITECTURE.md`**; процедура —
+> `…/docs/ARCHITECTURE.md`.
 >
 > **Статус: stub / placeholder.** Реализации нет; «Что TODO» — полный план.
 

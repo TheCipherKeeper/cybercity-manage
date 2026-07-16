@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "lint": [["gofmt", "-l", "."], ["go", "vet", "./..."]],
+  "tests": [["go", "test", "./..."]],
+  "build": {
+    "commands": [["go", "build", "-o", "bin/cybercity-manage", "./cmd/cybercity_manage"]],
+    "outputs": ["bin/cybercity-manage"]
+  },
+  "deploy": [["python", "tools/deploy.py", "{artifact_dir}", "{commit}"]]
+}

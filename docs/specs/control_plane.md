@@ -3,13 +3,13 @@
 > Спека главного планируемого модуля manage — оркестрации контрольной
 > плоскости (`internal/application` + `internal/ports` + `internal/adapters`).
 > Канон структуры —
-> [TheCipherKeeper/ai-project-template](https://github.com/TheCipherKeeper/ai-project-template)/docs/refs/SPEC.md;
+> [TheCipherKeeper/addm](https://github.com/TheCipherKeeper/addm)/docs/ARCHITECTURE.md;
 > **внутренняя архитектура (usecases/ports/domain/adapters) —
-> `…/docs/refs/MODULE.md`**; процедура заведения — `…/docs/guide/20-define-module.md`.
+> `…/docs/ARCHITECTURE.md`**; процедура заведения — `…/docs/ARCHITECTURE.md`.
 >
 > **Статус: stub / placeholder.** Кода контрольной плоскости пока нет (стартовая
 > точка). Секция «Что есть» — честно пуста (только stub-HTTP в
-> `cmd/cybercity-manage/main.go`, возвращающий 501, к этому модулю не относится);
+> `cmd/cybercity_manage/main.go`, возвращающий 501, к этому модулю не относится);
 > «Что TODO» — полный план. Не выдавать stub за реализацию.
 
 Модуль `control-plane` (условно объединяет `internal/application` + зависимые
@@ -90,7 +90,7 @@ type ManageError struct {
 ## Что есть
 
 > Честно: реализованного поведения контрольной плоскости **нет**. Код
-> отсутствует (стартовая точка). Stub `cmd/cybercity-manage/main.go` поднимает
+> отсутствует (стартовая точка). Stub `cmd/cybercity_manage/main.go` поднимает
 > HTTP-точку на `MANAGE_HTTP_ADDR`, логирует «manage stub — not implemented» и
 > возвращает 501 на все маршруты — это **placeholder** для собираемости образа,
 > не реализация юзкейсов; к контрактам выше отношения не имеет.
@@ -119,13 +119,13 @@ type ManageError struct {
   `CONVENTIONS@v1` (BACKLOG #9).
 - Опц. consume `city.build.completed` — readiness перед провижнингом (BACKLOG
   #10, пока не подключено).
-- Заменить stub-HTTP в `cmd/cybercity-manage/main.go` на реальный control API
+- Заменить stub-HTTP в `cmd/cybercity_manage/main.go` на реальный control API
   (BACKLOG #8).
 
 ## Ограничения
 
 - Только через output ports: `application` (usecases) **никогда** не импортирует
-  `adapters` напрямую (инвариант #14, `…/docs/refs/VERIFICATION.md`).
+  `adapters` напрямую (инвариант #14, `…/docs/OPERATIONS.md`).
 - `domain` ни от чего внутри модуля не зависит (без I/O, без ports).
 - Действие над гостем — только через `HypervisorClient` (гипервизор/фабрика),
   **не** через in-guest агента (доверительная граница).
@@ -144,7 +144,7 @@ type ManageError struct {
 
 - Output ports: `internal/ports` — `HypervisorClient`, `IacRunner`,
   `OverlayConsumer`, `EventPublisher`, `ControlAPI`.
-- Внутренние: `internal/domain` (доменные типы), `cmd/cybercity-manage`
+- Внутренние: `internal/domain` (доменные типы), `cmd/cybercity_manage`
   (composition root).
 - Внешние (Go): `bpg/proxmox-go-sdk` (Proxmox REST),
   `hashicorp/terraform-exec` / Pulumi Go SDK (IaC), Redpanda Go client
