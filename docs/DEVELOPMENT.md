@@ -21,7 +21,7 @@ go vet ./...
 golangci-lint run
 
 # Запуск оркестратора (требует реального Proxmox)
-go run ./cmd/cybercity-manage --proxmox-host ... provision --plan plans/lab.yaml
+go run ./cmd/cybercity_manage --proxmox-host ... provision --plan plans/lab.yaml
 ```
 
 ## Целевой стек

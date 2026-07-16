@@ -3,11 +3,11 @@
 > Пример канонической структуры спеки. Скопируй под свой модуль, удали этот
 > блок-комментарий. Спек описывает контракт (что), не реализацию (как).
 > Канон структуры (7 секций) и чек-лист —
-> [TheCipherKeeper/ai-project-template](https://github.com/TheCipherKeeper/ai-project-template)/docs/refs/SPEC.md;
+> [TheCipherKeeper/addm](https://github.com/TheCipherKeeper/addm)/docs/ARCHITECTURE.md;
 > **внутренняя архитектура модуля (usecases/ports/domain/adapters) —
-> `…/docs/refs/MODULE.md`**; процедура заведения модуля —
-> `…/docs/guide/20-define-module.md`. Модуль = каталог выбранного стека (см.
-> `…/docs/refs/LAYOUT.md`; для Go — `internal/<module>/`); команды проверки —
+> `…/docs/ARCHITECTURE.md`**; процедура заведения модуля —
+> `…/docs/ARCHITECTURE.md`. Модуль = каталог выбранного стека (см.
+> `…/docs/ARCHITECTURE.md`; для Go — `internal/<module>/`); команды проверки —
 > в `AGENTS.md` → *Команды проверки (выбранный стек)*.
 
 Краткое описание модуля: какую роль играет, какие границы ответственности.
@@ -16,7 +16,7 @@
 
 > **Юзкейсы** модуля. На каждый — input port (сигнатура `execute(In) -> Out`/
 > ошибки) и потребляемые output ports (из `ports/`, см.
-> [TheCipherKeeper/ai-project-template](https://github.com/TheCipherKeeper/ai-project-template)/docs/refs/MODULE.md).
+> [TheCipherKeeper/addm](https://github.com/TheCipherKeeper/addm)/docs/ARCHITECTURE.md).
 
 - `CreateThing.execute(input: CreateThingInput) -> Result<Thing, ModuleError>` —
   основной юзкейс. Потребляет output ports: `ThingRepo`, `EventPublisher`.

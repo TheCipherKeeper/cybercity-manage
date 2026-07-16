@@ -1,10 +1,10 @@
 # Архитектура
 
 > Скелет одного микросервиса. Стек —
-> [TheCipherKeeper/ai-project-template](https://github.com/TheCipherKeeper/ai-project-template)/docs/refs/STACKS.md,
-> раскладка workspace'а — `…/docs/refs/LAYOUT.md`, деплой —
-> `…/docs/guide/50-deploy.md` + `…/docs/refs/DEPLOYMENT.md`. Процедура заполнения
-> — `…/docs/guide/10-architecture.md`. Структура секций читается и людьми, и
+> [TheCipherKeeper/addm](https://github.com/TheCipherKeeper/addm)/docs/REFERENCE.md,
+> раскладка workspace'а — `…/docs/ARCHITECTURE.md`, деплой —
+> `…/docs/OPERATIONS.md` + `…/docs/OPERATIONS.md`. Процедура заполнения
+> — `…/docs/ARCHITECTURE.md`. Структура секций читается и людьми, и
 > агентами.
 >
 > Состав программы (несколько сервисов, системная топология) — в хабе
@@ -14,7 +14,7 @@
 > **Целевая архитектура.** Кода контрольной плоскости пока нет; этот документ
 > описывает цель, к которой идёт репозиторий (стартовая точка). Модули в
 > таблице — **запланированные** (TBD), помечены явно. Stub-точка входа
-> `cmd/cybercity-manage/main.go` существует лишь для собираемости образа и
+> `cmd/cybercity_manage/main.go` существует лишь для собираемости образа и
 > честно помечена как placeholder.
 
 ## Что это
@@ -75,24 +75,19 @@ generic consumer `overlays`-артефакта (собирает образы ч
 
 ## Модули
 
-> **TODO: кода пока нет.** Таблица — целевой макет (запланированные Go-модули),
-> не текущая реализация. Каждый модуль заведётся по процедуре
-> `…/docs/guide/20-define-module.md` со своей спекой в `docs/specs/<module>.md`.
-> Stub `cmd/cybercity-manage/main.go` — placeholder для собираемости образа.
+Текущая собираемая точка входа и запланированные возможности принадлежат одному
+самостоятельному модулю контрольной плоскости. Нереализованные возможности
+остаются явно отмеченными в его спецификации.
 
-| Модуль | Роль | Публикует / Читает (топики) |
-|---|---|---|
-| `cmd/cybercity-manage` | точка входа: composition root, CLI/HTTP-control-API stub | — (стартует приложение) |
-| `internal/domain` | чистая доменная логика: desired-state, quota, policy, `runtime_kind`, service-mapping (без I/O) | — (чистая, без топиков) |
-| `internal/ports` | output ports: `HypervisorClient`, `IacRunner`, `OverlayConsumer`, `EventPublisher`, `ControlAPI` (Go-интерфейсы, без I/O) | — (контракты, не реализация) |
-| `internal/adapters` | реализации output ports: Proxmox (`bpg/proxmox-go-sdk`), Terraform/Pulumi (`terraform-exec`/Pulumi SDK), Redpanda publisher, HTTP control-API server, ZFS snapshot, gVisor/Kata, collector-placement | publish: `infra.provisioned`, `control.snapshot`, `control.reset`, `control.isolate` (через Redpanda-адаптер) |
-| `internal/application` | оркестрация юзкейсов: `provision`, `reset`, `isolate`, `set-quota`, `place-collector`, `map-runtime-kind`, `reload-topology`, `control-snapshot` | publish через `EventPublisher`; consume (опц.) `city.build.completed` |
+| Модуль | Ответственность | Спецификация | Язык | Канонический корень | Проверка границ |
+|---|---|---|---|---|---|
+| `control_plane` | Управление инфраструктурой и разрешённая контрольная граница | `docs/specs/control_plane.md` | go | `internal/control_plane/` | VER-015 |
 
 Зависимости между модулями (DAG, целевой):
 
 ```mermaid
 graph LR
-  CMD["cmd/cybercity-manage<br/>(composition root)"] --> APP["internal/application<br/>(usecases)"]
+  CMD["cmd/cybercity_manage<br/>(composition root)"] --> APP["internal/application<br/>(usecases)"]
   APP --> PORTS["internal/ports<br/>(output ports)"]
   APP --> DOMAIN["internal/domain"]
   ADAPT["internal/adapters<br/>(Proxmox/IaC/Redpanda/HTTP)"] --> PORTS
@@ -100,10 +95,10 @@ graph LR
 ```
 
 > Швы и направление зависимостей —
-> [TheCipherKeeper/ai-project-template](https://github.com/TheCipherKeeper/ai-project-template)/docs/refs/MODULE.md:
+> [TheCipherKeeper/addm](https://github.com/TheCipherKeeper/addm)/docs/ARCHITECTURE.md:
 > `application` (usecases) зависит только от `ports` + `domain`, **никогда** от
 > `adapters`; `adapters` реализуют `ports`; `domain` ни от чего внутри модуля не
-> зависит. Инварианты #13, #14 — `…/docs/refs/VERIFICATION.md`.
+> зависит. Инварианты #13, #14 — `…/docs/OPERATIONS.md`.
 
 ## Брокер
 
@@ -111,8 +106,8 @@ graph LR
   `docker-compose.yml`, сервис `broker` (`broker:9092`).
 - **Контракты хаба:** `CONVENTIONS@v1` — пин версии, по которой гейт проверяет
   сервис (см.
-  [TheCipherKeeper/ai-project-template](https://github.com/TheCipherKeeper/ai-project-template)/docs/refs/VERIFICATION.md,
-  процедура — `…/docs/guide/40-verify.md`). Бамп пина — отдельным PR. Формат
+  [TheCipherKeeper/addm](https://github.com/TheCipherKeeper/addm)/docs/OPERATIONS.md,
+  процедура — `…/docs/WORKFLOW.md`). Бамп пина — отдельным PR. Формат
   сообщений (event envelope) — хаб
   [`cybercity/CONVENTIONS.md`](https://github.com/TheCipherKeeper/cybercity/blob/main/CONVENTIONS.md).
 
@@ -225,11 +220,11 @@ manage ↔ engine — два канала (per хаб COMPOSITION «Кто че�
   distroless/alpine runtime); expose control API port (`MANAGE_HTTP_ADDR`,
   по умолчанию `:8081`). Локальная разработка — `docker-compose.yml`
   (брокер Redpanda + manage). Детали —
-  [TheCipherKeeper/ai-project-template](https://github.com/TheCipherKeeper/ai-project-template)/docs/refs/DEPLOYMENT.md,
-  запуск — `…/docs/guide/50-deploy.md`.
+  [TheCipherKeeper/addm](https://github.com/TheCipherKeeper/addm)/docs/OPERATIONS.md,
+  запуск — `…/docs/OPERATIONS.md`.
 - Системный compose (все сервисы программы вместе) — в хабе, не здесь.
 - Соответствие хабу (на пиннённой версии контрактов `CONVENTIONS@v1`) —
-  verification-гейт (`…/docs/refs/VERIFICATION.md`, процедура — `…/docs/guide/40-verify.md`).
+  verification-гейт (`…/docs/OPERATIONS.md`, процедура — `…/docs/WORKFLOW.md`).
 
 ## Ссылки
 
@@ -240,8 +235,9 @@ manage ↔ engine — два канала (per хаб COMPOSITION «Кто че�
   [adr/](https://github.com/TheCipherKeeper/cybercity/blob/main/adr/)
   (ADR-0001…0010, единый дом).
 - Методология:
-  [TheCipherKeeper/ai-project-template](https://github.com/TheCipherKeeper/ai-project-template)
-  — `docs/guide/` (процедуры), `docs/refs/` (факты), `docs/INDEX.md` (роутер).
+  [TheCipherKeeper/addm](https://github.com/TheCipherKeeper/addm)
+  — `docs/WORKFLOW.md` (цикл), `docs/ARCHITECTURE.md` (канон) и
+  `docs/INDEX.md` (указатель).
 - Ключевые ADR (в хабе):
   [ADR-0002](https://github.com/TheCipherKeeper/cybercity/blob/main/adr/0002-trust-boundary.md)
   (доверительная граница),
@@ -254,6 +250,6 @@ manage ↔ engine — два канала (per хаб COMPOSITION «Кто че�
   [ADR-0009](https://github.com/TheCipherKeeper/cybercity/blob/main/adr/0009-manage-implementation-language-go.md)
   (manage на Go).
 - Этот репо: [`AGENTS.md`](../AGENTS.md) (правила),
-  [`docs/BACKLOG.md`](BACKLOG.md) (очередь задач),
+  хабовый бэклог (очередь задач),
   [`docs/specs/`](specs/) (контракты модулей),
   [`docs/DEVELOPMENT.md`](DEVELOPMENT.md) (целевой стек и тестирование).
